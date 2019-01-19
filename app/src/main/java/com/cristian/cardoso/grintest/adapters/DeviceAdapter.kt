@@ -34,6 +34,7 @@ class DeviceAdapter : RecyclerView.Adapter<DeviceViewHolder>() {
         }.join()
     }
 
+    @ObsoleteCoroutinesApi
     fun CoroutineScope.counterActor() = actor<List<Device>>(capacity = Channel.CONFLATED) {
         for (list in channel) internalUpdate(list)
     }
@@ -52,6 +53,16 @@ class DeviceAdapter : RecyclerView.Adapter<DeviceViewHolder>() {
 
     override fun getItemId(position: Int): Long {
         return mItems[position].hashCode().toLong()
+    }
+
+    fun update(device : Device){
+
+        val deviceAlreadyExists = mItems.any { it.address.equals(device.address) }
+        if(!deviceAlreadyExists){
+            val newList = mItems.toMutableList()
+            newList.add(device)
+            update(newList)
+        }
     }
 
     fun update (list: List<Device>) = GlobalScope.counterActor().offer(list)

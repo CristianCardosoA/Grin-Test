@@ -4,4 +4,6 @@
     <string name="activity_main_discovering_devices">Available devices</string>
     <string name="activity_main_paired_devices">Paired devices</string>
     <string name="main_activity_button_title_request_permission">Request permission</string>
+
+    <string name="format_dBm">%d dBm</string>
 </resources>

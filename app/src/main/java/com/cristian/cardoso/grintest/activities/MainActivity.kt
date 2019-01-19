@@ -8,7 +8,6 @@ import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
-import android.widget.Toast
 import com.cristian.cardoso.grintest.R
 import com.cristian.cardoso.grintest.databinding.ActivityMainBinding
 import com.cristian.cardoso.grintest.utils.BluetoothManager
@@ -31,14 +30,6 @@ class MainActivity : AppCompatActivity() {
         binding.executePendingBindings()
 
         lifecycle.addObserver(mainViewModel)
-
-        mainViewModel.errors.observe(this, Observer { error ->
-
-            error?.let {
-
-                Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
-            }
-        })
 
         mainViewModel.bluetoothTurnOn.observe(this, Observer { isBluetoothOn ->
 

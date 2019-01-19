@@ -7,85 +7,120 @@ import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LifecycleObserver
 import android.arch.lifecycle.MutableLiveData
 import android.content.pm.PackageManager
+import android.os.Build
 import android.support.v4.content.ContextCompat
 import com.cristian.cardoso.grintest.R
 import com.cristian.cardoso.grintest.adapters.DeviceAdapter
 import com.cristian.cardoso.grintest.interfaces.ToolbarCallback
 import com.cristian.cardoso.grintest.models.Device
-import com.cristian.cardoso.grintest.repositories.BluetoothDevices
+import com.cristian.cardoso.grintest.repositories.BluetoothReceiver
 import com.cristian.cardoso.grintest.utils.BluetoothManager
+import com.cristian.cardoso.grintest.usecases.BluetoothUseCases
 
 class MainViewModel(application: Application) : AndroidViewModel(application), ToolbarCallback, LifecycleObserver {
 
-    var toolbarViewModel : ToolbarViewModel = ToolbarViewModel(this, R.drawable.bluetooth, null, R.drawable.ic_refresh_black_24dp)
-    val errors = MutableLiveData<String>()
+    val toolbarViewModel : ToolbarViewModel = ToolbarViewModel(this, R.drawable.bluetooth, null, R.drawable.ic_refresh_black_24dp)
     val bluetoothTurnOn = MutableLiveData<Boolean>()
     val permissionLocationGranted = MutableLiveData<Boolean>()
+    val bluetoothIsDiscovering = MutableLiveData<Boolean>()
     val adapterBondedDevices = DeviceAdapter()
     val adapterNewDevices = DeviceAdapter()
-
-    val bluetoothListener = object : BluetoothDevices.BtScanCallback {
-
-        override fun onScanResult(device: Device) {
-
-            val devices = adapterNewDevices.mItems.toMutableList()
-            if(!devices.contains(device)){
-                devices.add(device)
-                adapterNewDevices.update(devices)
-            }
-        }
-    }
+    private val bluetoothUseCase = BluetoothUseCases()
 
     init {
 
+        bluetoothIsDiscovering.value = false
         adapterBondedDevices.mItems = listOf()
         adapterNewDevices.mItems = listOf()
 
         listBluetoothDevices()
     }
 
-    private fun listBluetoothDevices() {
+    private fun validateBtRequirements() : Boolean {
 
-        var result = BluetoothManager.isBluetoothAvailable()
+        //Validate if bluetooth is available.
+        var result = bluetoothUseCase.bluetoothManager.isBluetoothAvailable()
 
-        if (result) {
+        if (!result) {
 
-            result = BluetoothManager.isBluetoothOn()
+            //Nothing to do, bt is not present on current device
+            return false
+        }
+
+        result = bluetoothUseCase.bluetoothManager.isBluetoothOn()
+
+        if (!result) {
 
             bluetoothTurnOn.value = result
+            return false
+        }
 
-            if (result) {
+        //Request permission location coarse in order to discover new devices
+        //Android 6.0 is necessary coarse permission
+        //Requires Manifest.permission.BLUETOOTH and Manifest.permission.ACCESS_COARSE_LOCATION to receive.
+        //https://developer.android.com/reference/android/bluetooth/BluetoothDevice#ACTION_FOUND
 
+        if (Build.VERSION.SDK_INT >= 23) {
 
-                //Bluetooth is enabled
-                //list bluetooth devices paired
+            result = isLocationPermissionGranted()
 
-                listBondedDevicesPaired()
-
-                //Request permission location coarse in order to discover new devices
-                //Android 6.0 is necessary coarse permission
-                val locationPermissionGranted = requestLocationPermission()
-
-                if (locationPermissionGranted){
-
-                    listenAndStartExploringBt()
-                }
+            if(!result){
+                //Request permission to obtain bt devices
+                requestLocationPermission()
+                return false
             }
+        }
 
-        } else {
+        permissionLocationGranted.value = true
+        return true
+    }
 
-            //Device does not support bluetooth
-            errors.value = getApplication<Application>().getString(com.cristian.cardoso.grintest.R.string.error_device_does_not_support_bluetooth)
+    private fun listBluetoothDevices() {
+
+        val didRequirementsPassed = validateBtRequirements()
+
+        if (didRequirementsPassed){
+
+            //Clear lists
+            reset()
+
+            //List bluetooth devices paired
+            bluetoothUseCase.getPairedBluetoothDevices()?.let { devices -> adapterBondedDevices.update(devices) }
+
+            //Start to listen
+            bluetoothUseCase.getNewBluetoothDevices(getApplication(), object : BluetoothReceiver.BtScanCallback{
+                override fun onScanResult(device: Device) {
+
+                    adapterNewDevices.update(device)
+                }
+
+                override fun onStartDiscovering() {
+
+                    bluetoothIsDiscovering.value = true
+                }
+
+                override fun onStopDiscovering() {
+
+                    bluetoothIsDiscovering.value = false
+                }
+            })
         }
     }
 
-    fun requestLocationPermission() : Boolean {
+    private fun reset(){
 
-        val granted = ContextCompat.checkSelfPermission(getApplication(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        adapterBondedDevices.update(listOf())
+        adapterNewDevices.update(listOf())
+    }
 
-        this.permissionLocationGranted.value = granted
+    private fun isLocationPermissionGranted() : Boolean {
 
-        return granted
+        return ContextCompat.checkSelfPermission(getApplication(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    }
+
+    fun requestLocationPermission() {
+
+        this.permissionLocationGranted.value = false
     }
 
     fun onRequestPermissionResult(requestCode: Int, grantResults: IntArray){
@@ -113,38 +148,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application), T
         }
     }
 
-    private fun listenAndStartExploringBt(){
+    override fun onClickToolbarRightButton() {  listBluetoothDevices() }
 
-        BluetoothManager.startListen(getApplication(), bluetoothListener)
-    }
+    override fun onClickToolbarCenterButton() {}
 
-    private fun stopListenBt(){
-
-        BluetoothManager.stopListen(getApplication())
-    }
-
-    private fun listBondedDevicesPaired(){
-
-        BluetoothManager.discoverDevicesPaired()?.let { devices -> adapterBondedDevices.update(devices) }
-    }
-
-    override fun onClickToolbarRightButton() {
-
-        adapterNewDevices.update(listOf())
-        BluetoothManager.refresh(getApplication(), bluetoothListener)
-    }
-
-    override fun onClickToolbarCenterButton() {
-
-    }
-
-    override fun onClickToolbarLeftButton() {
-
-    }
+    override fun onClickToolbarLeftButton() {}
 
     override fun onCleared() {
 
-        stopListenBt()
+        //Stop discovering bt devices
+        bluetoothUseCase.stop(getApplication())
+
         super.onCleared()
     }
 }
