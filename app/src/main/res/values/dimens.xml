@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toolbar dimens -->
+    <dimen name="appbar_elevation">20dp</dimen>
+    <dimen name="appbar_logo_height">60dp</dimen>
+    <dimen name="appbar_logo_width">200dp</dimen>
+</resources>
