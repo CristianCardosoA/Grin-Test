@@ -4,9 +4,6 @@
 
     <data>
         <variable
-            name="progress"
-            type="android.arch.lifecycle.MutableLiveData&lt;Boolean&gt;"/>
-        <variable
             name="model"
             type="com.cristian.cardoso.grintest.viewmodels.DialogViewModel"/>
         <import type="android.view.View"/>
@@ -73,7 +70,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
-            android:visibility="@{progress ? View.VISIBLE : View.GONE}"
+            android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
     </android.support.constraint.ConstraintLayout>

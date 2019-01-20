@@ -18,8 +18,6 @@ class DeviceAdapter(var allowToSave : Boolean): RecyclerView.Adapter<DeviceViewH
     var mItems : List<Device> = listOf()
     private var mRecyclerView: RecyclerView? = null
     private val diffCallback by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { DiffCallback() }
-    private val filterDate : FilterOrder = FilterOrder.NEWEST
-    enum class FilterOrder { NEWEST, OLDEST }
 
     private inner class DiffCallback : DiffUtil.Callback() {
         lateinit var newList: List<Device>
@@ -88,7 +86,7 @@ class DeviceAdapter(var allowToSave : Boolean): RecyclerView.Adapter<DeviceViewH
             when {
                 p1.created_at == null || p2.created_at == null -> -1
                 dateTimeStrToLocalDateTime(p1.created_at).before(dateTimeStrToLocalDateTime(p2.created_at)) -> {
-                    if(newest){ 1 } else { -1 }
+                    if(newest){-1 } else { 1 }
                 }
                 else -> -1
             }

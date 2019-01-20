@@ -32,9 +32,9 @@ class BluetoothManager {
         val devices : ArrayList<Device> = ArrayList()
 
         val pairedDevices = mBluetoothAdapter.bondedDevices
-        // If there are paired devices
+
         if (pairedDevices.size > 0) {
-            // Loop through paired devices
+
             for (device in pairedDevices) {
                 devices.add(Device(null, device.name, device.address, null, null))
             }

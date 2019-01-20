@@ -1,6 +1,5 @@
 package com.cristian.cardoso.grintest.dialogs
 
-import android.arch.lifecycle.MutableLiveData
 import android.databinding.DataBindingUtil
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -23,7 +22,7 @@ class DialogOKCancel : DialogFragment() {
     private var leftButtonText: String? = null
     private var titleText: String? = null
     private var callback : DialogCallback? = null
-    private var progress = MutableLiveData<Boolean>()
+    var binding : DialogSaveDeviceBinding? = null
 
     companion object {
 
@@ -52,7 +51,6 @@ class DialogOKCancel : DialogFragment() {
         titleText =  arguments?.getString(TITLE_TEXT, "")
         callback = arguments?.getSerializable(CALLBACK) as DialogCallback
         isCancelable = false
-        progress.value = false
     }
 
     override fun onCreateView(inflater: LayoutInflater,
@@ -62,20 +60,31 @@ class DialogOKCancel : DialogFragment() {
         dialog?.window?.requestFeature(Window.FEATURE_NO_TITLE)
         dialog?.window?.setBackgroundDrawable(ColorDrawable(Color.BLACK))
 
-        val binding : DialogSaveDeviceBinding = DataBindingUtil.inflate(inflater, R.layout.dialog_save_device, container,false)
-        binding.model = DialogViewModel(this, callback, titleText, rightButtonText ?: "", leftButtonText ?: "")
-        binding.progress = progress
-        return binding.root
+        binding = DataBindingUtil.inflate(inflater, R.layout.dialog_save_device, container,false)
+        binding?.model = DialogViewModel(this, callback, titleText, rightButtonText ?: "", leftButtonText ?: "")
+        return binding?.root
+    }
+
+    fun block(){
+
+        binding?.button2?.isEnabled = false
+        binding?.button3?.isEnabled = false
+    }
+
+    fun desblock(){
+
+        binding?.button2?.isEnabled = true
+        binding?.button3?.isEnabled = true
     }
 
     fun showProgress(){
 
-        progress.value = true
+        binding?.progressBar2?.visibility = View.VISIBLE
     }
 
     fun hideProgress(){
 
-        progress.value = false
+        binding?.progressBar2?.visibility = View.GONE
 
     }
 }

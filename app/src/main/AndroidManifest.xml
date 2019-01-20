@@ -26,7 +26,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".activities.MainActivity"/>
-        <activity android:name=".activities.SaveDeviceActivity"/>
         <activity android:name=".activities.AllDevicesActivity"/>
     </application>
 

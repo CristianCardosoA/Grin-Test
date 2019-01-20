@@ -52,6 +52,7 @@
             android:layout_marginBottom="8dp"
             android:visibility="@{allowToSave ? View.VISIBLE : View.GONE}"
             android:src="@drawable/ic_add_circle_black_24dp"
+            android:padding="10dp"
             android:onClick="@{v -> callBack.onClick(v)}"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

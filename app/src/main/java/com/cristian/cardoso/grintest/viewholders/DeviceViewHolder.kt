@@ -8,10 +8,8 @@ import com.cristian.cardoso.grintest.databinding.ViewholderDeviceBinding
 import com.cristian.cardoso.grintest.dialogs.DialogOKCancel
 import com.cristian.cardoso.grintest.interfaces.DialogCallback
 import com.cristian.cardoso.grintest.models.Device
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.cristian.cardoso.grintest.usecases.BluetoothUseCases
+import kotlinx.coroutines.*
 
 
 class DeviceViewHolder(private val binding : ViewholderDeviceBinding, private val allowToSave : Boolean = false) : RecyclerView.ViewHolder(binding.root){
@@ -23,19 +21,31 @@ class DeviceViewHolder(private val binding : ViewholderDeviceBinding, private va
         override fun onClickRightButton(dialogFragment: DialogOKCancel) {
 
             dialogFragment.showProgress()
+            dialogFragment.block()
 
-            /*device?.let {
+            device?.let {
 
                 CoroutineScope(Dispatchers.IO).launch {
 
-                    //BluetoothUseCases().saveBluetoothDeviceToAPI(it)
+                    val device = BluetoothUseCases().saveBluetoothDeviceToAPI(it)
 
-                    withContext(Dispatchers.Main) {
+                    if(device != null){
 
-                        dialogFragment.dismiss()
+                        withContext(Dispatchers.Main) {
+
+                            dialogFragment.dismiss()
+                        }
+
+                    } else {
+
+                        withContext(Dispatchers.Main) {
+
+                            dialogFragment.hideProgress()
+                            dialogFragment.desblock()
+                        }
                     }
                 }
-            }*/
+            }
         }
 
         override fun onClickLeftButton(dialogFragment: DialogOKCancel) {

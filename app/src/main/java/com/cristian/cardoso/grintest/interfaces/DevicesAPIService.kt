@@ -5,6 +5,7 @@ import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterF
 import kotlinx.coroutines.Deferred
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 
@@ -17,7 +18,7 @@ interface DevicesAPIService {
     fun getAllBTDevices() : Deferred<List<Device>>
 
     @POST("add/")
-    fun saveBTDevice(device : Device) : Deferred<Device>
+    fun saveBTDevice(@Body device : Device) : Deferred<Device>
 
     companion object {
         fun create() : DevicesAPIService {
