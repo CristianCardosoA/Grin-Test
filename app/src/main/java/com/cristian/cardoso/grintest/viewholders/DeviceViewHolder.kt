@@ -27,16 +27,27 @@ class DeviceViewHolder(private val binding : ViewholderDeviceBinding, private va
 
                 CoroutineScope(Dispatchers.IO).launch {
 
-                    val device = BluetoothUseCases().saveBluetoothDeviceToAPI(it)
+                    try {
 
-                    if(device != null){
+                        val device = BluetoothUseCases().saveBluetoothDeviceToAPI(it)
 
-                        withContext(Dispatchers.Main) {
+                        if(device != null){
 
-                            dialogFragment.dismiss()
+                            withContext(Dispatchers.Main) {
+
+                                dialogFragment.dismiss()
+                            }
+
+                        } else {
+
+                            withContext(Dispatchers.Main) {
+
+                                dialogFragment.hideProgress()
+                                dialogFragment.desblock()
+                            }
                         }
 
-                    } else {
+                    } catch (e : Exception){
 
                         withContext(Dispatchers.Main) {
 
