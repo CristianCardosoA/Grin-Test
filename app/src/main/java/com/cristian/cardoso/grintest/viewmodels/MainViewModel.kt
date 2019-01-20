@@ -11,11 +11,11 @@ import android.os.Build
 import android.support.v4.content.ContextCompat
 import com.cristian.cardoso.grintest.R
 import com.cristian.cardoso.grintest.adapters.DeviceAdapter
+import com.cristian.cardoso.grintest.interfaces.BtScanCallback
 import com.cristian.cardoso.grintest.interfaces.ToolbarCallback
-import com.cristian.cardoso.grintest.models.commands.MainViewModelCommands
 import com.cristian.cardoso.grintest.models.Device
 import com.cristian.cardoso.grintest.models.SingleLiveEvent
-import com.cristian.cardoso.grintest.repositories.BluetoothReceiver
+import com.cristian.cardoso.grintest.models.commands.MainViewModelCommands
 import com.cristian.cardoso.grintest.usecases.BluetoothUseCases
 import com.cristian.cardoso.grintest.utils.BluetoothManager
 
@@ -93,7 +93,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application), T
             }
 
             //Start to listen
-            bluetoothUseCase.getNewBluetoothDevices(getApplication(), object : BluetoothReceiver.BtScanCallback {
+            bluetoothUseCase.getNewBluetoothDevices(getApplication(), object : BtScanCallback {
 
                 override fun onBtDisconnected() {
                     reset()

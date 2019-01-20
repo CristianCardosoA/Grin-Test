@@ -4,9 +4,9 @@ import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.content.Context
 import android.content.Intent
+import com.cristian.cardoso.grintest.interfaces.BtScanCallback
 import com.cristian.cardoso.grintest.models.Device
-import com.cristian.cardoso.grintest.repositories.BluetoothReceiver
-
+import com.cristian.cardoso.grintest.receivers.BluetoothReceiver
 
 class BluetoothManager {
 
@@ -43,7 +43,7 @@ class BluetoothManager {
         return  devices
     }
 
-    fun startListen(context: Context, listener : BluetoothReceiver.BtScanCallback ){
+    fun startListen(context: Context, listener : BtScanCallback){
 
         bluetoothFilter.listenBtScan(context, listener)
         mBluetoothAdapter?.startDiscovery()

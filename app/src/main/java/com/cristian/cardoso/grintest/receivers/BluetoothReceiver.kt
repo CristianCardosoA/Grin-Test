@@ -1,4 +1,4 @@
-package com.cristian.cardoso.grintest.repositories
+package com.cristian.cardoso.grintest.receivers
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothAdapter.*
@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import com.cristian.cardoso.grintest.interfaces.BtScanCallback
 import com.cristian.cardoso.grintest.models.Device
 
 class BluetoothReceiver : BroadcastReceiver() {
@@ -51,13 +52,5 @@ class BluetoothReceiver : BroadcastReceiver() {
                 }
             }
         }
-    }
-
-    interface BtScanCallback {
-
-        fun onScanResult(device : Device)
-        fun onStartDiscovering()
-        fun onStopDiscovering()
-        fun onBtDisconnected()
     }
 }
