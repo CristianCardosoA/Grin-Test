@@ -10,12 +10,16 @@ import com.cristian.cardoso.grintest.viewholders.DeviceViewHolder
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.actor
+import java.text.SimpleDateFormat
+import java.util.*
 
-class DeviceAdapter : RecyclerView.Adapter<DeviceViewHolder>() {
+class DeviceAdapter(var allowToSave : Boolean): RecyclerView.Adapter<DeviceViewHolder>() {
 
     var mItems : List<Device> = listOf()
     private var mRecyclerView: RecyclerView? = null
-    private val diffCallback by lazy(LazyThreadSafetyMode.NONE) { DiffCallback() }
+    private val diffCallback by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { DiffCallback() }
+    private val filterDate : FilterOrder = FilterOrder.NEWEST
+    enum class FilterOrder { NEWEST, OLDEST }
 
     private inner class DiffCallback : DiffUtil.Callback() {
         lateinit var newList: List<Device>
@@ -28,21 +32,21 @@ class DeviceAdapter : RecyclerView.Adapter<DeviceViewHolder>() {
     private suspend fun internalUpdate(list: List<Device>) {
 
         val result = DiffUtil.calculateDiff(diffCallback.apply { newList = list }, false)
-        GlobalScope.launch(Dispatchers.Main) {
+        CoroutineScope(Dispatchers.Main).launch {
             mItems = list
             result.dispatchUpdatesTo(this@DeviceAdapter)
         }.join()
     }
 
     @ObsoleteCoroutinesApi
-    fun CoroutineScope.counterActor() = actor<List<Device>>(capacity = Channel.CONFLATED) {
+    fun CoroutineScope.counterActor() = actor<List<Device>>(capacity = Channel.UNLIMITED) {
         for (list in channel) internalUpdate(list)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DeviceViewHolder {
 
         val binding = ViewholderDeviceBinding.inflate(LayoutInflater.from(parent.context), parent ,false)
-        return DeviceViewHolder(binding)
+        return DeviceViewHolder(binding, allowToSave)
     }
 
 
@@ -63,6 +67,33 @@ class DeviceAdapter : RecyclerView.Adapter<DeviceViewHolder>() {
             newList.add(device)
             update(newList)
         }
+    }
+
+    fun clear(){
+
+        mItems = listOf()
+        notifyDataSetChanged()
+    }
+
+    fun orderByDate(pattern : String, newest : Boolean) {
+
+        val dateTimeStrToLocalDateTime: (String) -> Date = {
+
+            val parser = SimpleDateFormat(pattern, Locale.getDefault())
+            parser.parse(it)
+        }
+
+        val tmp = mItems.toMutableList()
+        tmp.sortWith(Comparator { p1, p2 ->
+            when {
+                p1.created_at == null || p2.created_at == null -> -1
+                dateTimeStrToLocalDateTime(p1.created_at).before(dateTimeStrToLocalDateTime(p2.created_at)) -> {
+                    if(newest){ 1 } else { -1 }
+                }
+                else -> -1
+            }
+        })
+        update(tmp)
     }
 
     fun update (list: List<Device>) = GlobalScope.counterActor().offer(list)

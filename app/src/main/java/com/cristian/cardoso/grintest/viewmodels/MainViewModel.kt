@@ -12,23 +12,26 @@ import android.support.v4.content.ContextCompat
 import com.cristian.cardoso.grintest.R
 import com.cristian.cardoso.grintest.adapters.DeviceAdapter
 import com.cristian.cardoso.grintest.interfaces.ToolbarCallback
+import com.cristian.cardoso.grintest.models.commands.MainViewModelCommands
 import com.cristian.cardoso.grintest.models.Device
+import com.cristian.cardoso.grintest.models.SingleLiveEvent
 import com.cristian.cardoso.grintest.repositories.BluetoothReceiver
-import com.cristian.cardoso.grintest.utils.BluetoothManager
 import com.cristian.cardoso.grintest.usecases.BluetoothUseCases
+import com.cristian.cardoso.grintest.utils.BluetoothManager
 
 class MainViewModel(application: Application) : AndroidViewModel(application), ToolbarCallback, LifecycleObserver {
 
     val toolbarViewModel : ToolbarViewModel = ToolbarViewModel(this, R.drawable.bluetooth, null, R.drawable.ic_refresh_black_24dp)
-    val bluetoothTurnOn = MutableLiveData<Boolean>()
-    val permissionLocationGranted = MutableLiveData<Boolean>()
     val bluetoothIsDiscovering = MutableLiveData<Boolean>()
-    val adapterBondedDevices = DeviceAdapter()
-    val adapterNewDevices = DeviceAdapter()
+    var permissionLocationGranted = MutableLiveData<Boolean>()
+    val command = SingleLiveEvent<MainViewModelCommands>()
+    val adapterBondedDevices = DeviceAdapter(false)
+    val adapterNewDevices = DeviceAdapter(true)
     private val bluetoothUseCase = BluetoothUseCases()
 
     init {
 
+        permissionLocationGranted.value = false
         bluetoothIsDiscovering.value = false
         adapterBondedDevices.mItems = listOf()
         adapterNewDevices.mItems = listOf()
@@ -44,6 +47,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application), T
         if (!result) {
 
             //Nothing to do, bt is not present on current device
+            command.value = MainViewModelCommands.Error(getApplication<Application>().getString(R.string.error_device_does_not_support_bluetooth))
             return false
         }
 
@@ -51,12 +55,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application), T
 
         if (!result) {
 
-            bluetoothTurnOn.value = result
+            command.value = MainViewModelCommands.TurnOnBluetooth
             return false
         }
 
         //Request permission location coarse in order to discover new devices
-        //Android 6.0 is necessary coarse permission
+        //Android 6.0 is necessary coarse location permission
         //Requires Manifest.permission.BLUETOOTH and Manifest.permission.ACCESS_COARSE_LOCATION to receive.
         //https://developer.android.com/reference/android/bluetooth/BluetoothDevice#ACTION_FOUND
 
@@ -81,14 +85,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application), T
 
         if (didRequirementsPassed){
 
-            //Clear lists
             reset()
 
             //List bluetooth devices paired
-            bluetoothUseCase.getPairedBluetoothDevices()?.let { devices -> adapterBondedDevices.update(devices) }
+            bluetoothUseCase.getPairedBluetoothDevices()?.let { devices ->
+                adapterBondedDevices.update(devices)
+            }
 
             //Start to listen
-            bluetoothUseCase.getNewBluetoothDevices(getApplication(), object : BluetoothReceiver.BtScanCallback{
+            bluetoothUseCase.getNewBluetoothDevices(getApplication(), object : BluetoothReceiver.BtScanCallback {
+
+                override fun onBtDisconnected() {
+                    reset()
+                }
+
                 override fun onScanResult(device: Device) {
 
                     adapterNewDevices.update(device)
@@ -109,18 +119,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application), T
 
     private fun reset(){
 
-        adapterBondedDevices.update(listOf())
-        adapterNewDevices.update(listOf())
+        adapterBondedDevices.clear()
+        adapterNewDevices.clear()
     }
 
     private fun isLocationPermissionGranted() : Boolean {
 
         return ContextCompat.checkSelfPermission(getApplication(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
-    }
-
-    fun requestLocationPermission() {
-
-        this.permissionLocationGranted.value = false
     }
 
     fun onRequestPermissionResult(requestCode: Int, grantResults: IntArray){
@@ -148,9 +153,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application), T
         }
     }
 
-    override fun onClickToolbarRightButton() {  listBluetoothDevices() }
 
-    override fun onClickToolbarCenterButton() {}
+    fun requestLocationPermission(){
+
+        command.value = MainViewModelCommands.RequestLocationPermission
+    }
+
+    override fun onClickToolbarRightButton() = if(bluetoothIsDiscovering.value == false){
+        listBluetoothDevices()
+    } else {
+        command.value = MainViewModelCommands.Error(getApplication<Application>().getString(R.string.error_bt_discovering))
+    }
+
+    override fun onClickToolbarCenterButton() {
+        command.value = MainViewModelCommands.GoToAllDevicestActivity
+    }
 
     override fun onClickToolbarLeftButton() {}
 

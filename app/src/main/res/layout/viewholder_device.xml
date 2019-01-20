@@ -4,8 +4,15 @@
 
     <data>
         <variable
+            name="allowToSave"
+            type="Boolean"/>
+        <variable
             name="device"
             type="com.cristian.cardoso.grintest.models.Device"/>
+        <variable
+            name="callBack"
+            type="android.view.View.OnClickListener"/>
+        <import type="android.view.View"/>
     </data>
 
     <android.support.constraint.ConstraintLayout
@@ -20,6 +27,7 @@
             android:padding="10dp"
             android:text='@{device.name != null ? device.name : ""}'
             android:textColor="@color/colorWhite"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -29,8 +37,9 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
             android:padding="10dp"
-            android:text='@{device.strenght != null ? String.format(@string/format_dBm, device.strenght) : ""}'
+            android:text='@{device.strength != null ? (!device.strength.contains(@string/format_dB) ? String.format(@string/format_dBm, device.strength).trim() : device.strength.trim()) : ""}'
             android:textColor="@color/colorWhite"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/imageView"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -41,7 +50,9 @@
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             android:layout_marginBottom="8dp"
+            android:visibility="@{allowToSave ? View.VISIBLE : View.GONE}"
             android:src="@drawable/ic_add_circle_black_24dp"
+            android:onClick="@{v -> callBack.onClick(v)}"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

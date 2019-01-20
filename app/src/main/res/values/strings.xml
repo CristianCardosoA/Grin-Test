@@ -1,9 +1,19 @@
 <resources>
     <string name="app_name">GrinTest</string>
+
     <string name="splash_content_description_image">Splash image, desert image.</string>
+
     <string name="activity_main_discovering_devices">Available devices</string>
     <string name="activity_main_paired_devices">Paired devices</string>
-    <string name="main_activity_button_title_request_permission">Request permission</string>
+    <string name="activity_main_button_title_request_permission">Request permission</string>
 
-    <string name="format_dBm">%d dBm</string>
+    <string name="activity_all_devices_title">WS Devices</string>
+
+    <string name="format_dBm">%s dBm</string>
+    <string name="format_dB">d</string>
+    <string name="format_date_device">yyyy-MM-dd\'T\'HH:mm:ss.SSSXXX</string>
+
+    <string name="dialog_save_device_right_button">Save</string>
+    <string name="dialog_save_device_left_button">Cancel</string>
+
 </resources>

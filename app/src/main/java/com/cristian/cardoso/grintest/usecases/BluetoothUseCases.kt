@@ -17,6 +17,16 @@ class BluetoothUseCases {
         repository = BluetoothRepository(bluetoothManager)
     }
 
+    suspend fun getBluetoothDevicesAPI() : List<Device>? {
+
+        return repository?.obtainBluetoothDevicesFromServer()
+    }
+
+    suspend fun saveBluetoothDeviceToAPI(device : Device) : Device? {
+
+        return repository?.saveBluetoothDevicesToServer(device)
+    }
+
     fun getNewBluetoothDevices(context: Context, callback : BluetoothReceiver.BtScanCallback){
         repository?.obtainNewBluetoothDevices(context, callback)
     }

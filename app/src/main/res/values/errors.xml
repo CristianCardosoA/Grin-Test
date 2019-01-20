@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="error_device_does_not_support_bluetooth">Device does not support Bluetooth</string>
+    <string name="error_bt_discovering">Bluetooth is discovering, please wait …</string>
 </resources>

@@ -1,7 +1,7 @@
 package com.cristian.cardoso.grintest.repositories
 
-import android.bluetooth.BluetoothAdapter.ACTION_DISCOVERY_FINISHED
-import android.bluetooth.BluetoothAdapter.ACTION_DISCOVERY_STARTED
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothAdapter.*
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -23,6 +23,7 @@ class BluetoothReceiver : BroadcastReceiver() {
         filter.addAction(BluetoothDevice.ACTION_NAME_CHANGED)
         filter.addAction(ACTION_DISCOVERY_STARTED)
         filter.addAction(ACTION_DISCOVERY_FINISHED)
+        filter.addAction(ACTION_STATE_CHANGED)
         context.registerReceiver(this, filter)
     }
 
@@ -38,11 +39,17 @@ class BluetoothReceiver : BroadcastReceiver() {
                 val device :  BluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
                 if(!device.name.isNullOrEmpty() && !device.address.isNullOrEmpty()){
                     val dBm = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, java.lang.Short.MIN_VALUE)
-                    callback?.onScanResult(Device(null, device.name, device.address, dBm, null))
+                    callback?.onScanResult(Device(null, device.name, device.address, dBm.toString(), null))
                 }
             }
             ACTION_DISCOVERY_FINISHED == action -> callback?.onStopDiscovering()
             ACTION_DISCOVERY_STARTED == action -> callback?.onStartDiscovering()
+            ACTION_STATE_CHANGED == action -> {
+                val state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1)
+                if (state == BluetoothAdapter.STATE_OFF){
+                    callback?.onBtDisconnected()
+                }
+            }
         }
     }
 
@@ -51,5 +58,6 @@ class BluetoothReceiver : BroadcastReceiver() {
         fun onScanResult(device : Device)
         fun onStartDiscovering()
         fun onStopDiscovering()
+        fun onBtDisconnected()
     }
 }

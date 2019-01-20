@@ -1,21 +1,26 @@
 package com.cristian.cardoso.grintest.repositories
 
 import android.content.Context
+import com.cristian.cardoso.grintest.interfaces.DevicesAPIService
 import com.cristian.cardoso.grintest.models.Device
 import com.cristian.cardoso.grintest.utils.BluetoothManager
 
 class BluetoothRepository(private val bluetoothManager : BluetoothManager) {
 
     //Function to obtain devices from server
-    private fun obtainBluetoothDevicesFromServer() : List<Device> {
+    suspend fun saveBluetoothDevicesToServer(device : Device) : Device {
 
-        return emptyList()
+        val apiService = DevicesAPIService.create()
+
+        return apiService.saveBTDevice(device).await()
     }
 
-    //Function to obtain devices from database
-    private fun obtainBluetoothDevicesLocal() : List<Device> {
+    //Function to obtain devices from server
+    suspend fun obtainBluetoothDevicesFromServer() : List<Device> {
 
-        return emptyList()
+        val apiService = DevicesAPIService.create()
+
+        return apiService.getAllBTDevices().await()
     }
 
     fun obtainPairedBluetoothDevices() : List<Device>? {

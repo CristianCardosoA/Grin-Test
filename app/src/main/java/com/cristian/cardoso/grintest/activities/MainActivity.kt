@@ -8,9 +8,12 @@ import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
+import android.widget.Toast
 import com.cristian.cardoso.grintest.R
 import com.cristian.cardoso.grintest.databinding.ActivityMainBinding
+import com.cristian.cardoso.grintest.models.commands.MainViewModelCommands
 import com.cristian.cardoso.grintest.utils.BluetoothManager
+import com.cristian.cardoso.grintest.utils.ToastUtil
 import com.cristian.cardoso.grintest.viewmodels.MainViewModel
 
 class MainActivity : AppCompatActivity() {
@@ -31,26 +34,30 @@ class MainActivity : AppCompatActivity() {
 
         lifecycle.addObserver(mainViewModel)
 
-        mainViewModel.bluetoothTurnOn.observe(this, Observer { isBluetoothOn ->
+        mainViewModel.command.observe(this, Observer { command ->
 
-            isBluetoothOn?.let {
+            command.let {
 
-                if (!it) {
+                when(it){
 
-                    BluetoothManager.requestEnableBluetooth(this)
-                }
-            }
-        })
+                    is MainViewModelCommands.GoToAllDevicestActivity -> {
+                        val i = Intent(this, AllDevicesActivity::class.java)
+                        startActivity(i)
+                    }
+                    is MainViewModelCommands.Error -> {
+                        ToastUtil.show(this, it.errorString, Toast.LENGTH_LONG)
+                    }
 
-        mainViewModel.permissionLocationGranted.observe(this, Observer { request ->
+                    is MainViewModelCommands.TurnOnBluetooth -> {
+                        BluetoothManager.requestEnableBluetooth(this)
+                    }
 
-            request?.let { it ->
+                    is MainViewModelCommands.RequestLocationPermission -> {
 
-                if (!it) {
+                        val arrayPermissions = Array(size = 1, init = { Manifest.permission.ACCESS_COARSE_LOCATION })
 
-                    val arrayPermissions = Array(size = 1, init = { Manifest.permission.ACCESS_COARSE_LOCATION })
-
-                    ActivityCompat.requestPermissions(this, arrayPermissions, BluetoothManager.REQUEST_LOCATION_PERMISSION)
+                        ActivityCompat.requestPermissions(this, arrayPermissions, BluetoothManager.REQUEST_LOCATION_PERMISSION)
+                    }
                 }
             }
         })

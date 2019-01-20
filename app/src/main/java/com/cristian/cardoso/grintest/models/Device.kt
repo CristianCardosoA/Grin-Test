@@ -4,6 +4,6 @@ data class Device (
         val _id : String?,
         val name : String?,
         val address : String?,
-        var strenght : Short?,
+        var strength : String?,
         val created_at : String?
 )
