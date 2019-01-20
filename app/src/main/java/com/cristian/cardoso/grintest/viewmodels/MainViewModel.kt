@@ -25,7 +25,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application), T
     val bluetoothIsDiscovering = MutableLiveData<Boolean>()
     var permissionLocationGranted = MutableLiveData<Boolean>()
     val command = SingleLiveEvent<MainViewModelCommands>()
-    val adapterBondedDevices = DeviceAdapter(false)
+    val adapterBondedDevices = DeviceAdapter(true)
     val adapterNewDevices = DeviceAdapter(true)
     private val bluetoothUseCase = BluetoothUseCases()
 

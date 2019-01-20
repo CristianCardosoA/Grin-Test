@@ -36,7 +36,7 @@ class BluetoothManager {
         if (pairedDevices.size > 0) {
 
             for (device in pairedDevices) {
-                devices.add(Device(null, device.name, device.address, null, null))
+                devices.add(Device(null, device.name, device.address, "0.0", null))
             }
         }
 
